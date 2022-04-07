@@ -15,6 +15,9 @@ extension StreamMockServer {
         server[MockEndpoint.messageUpdate] = { [weak self] request in
             self?.messageUpdate(request: request) ?? .badRequest(nil)
         }
+        server[MockEndpoint.replies] = { [weak self] request in
+            self?.mockMessageReplies(request: request) ?? .badRequest(nil)
+        }
     }
     
     func mockDeletedMessage(_ message: [String: Any]) -> [String: Any] {
@@ -40,19 +43,54 @@ extension StreamMockServer {
         return mockedMessage
     }
     
+    func mockMessageInThread(
+        _ message: [String: Any],
+        parentId: String,
+        messageId: String,
+        text: String?,
+        createdAt: String?,
+        updatedAt: String?,
+        showInChannel: Bool = false
+    ) -> [String: Any] {
+        var mockedMessage = message
+        mockedMessage[MessagePayloadsCodingKeys.parentId.rawValue] = parentId
+        mockedMessage[MessagePayloadsCodingKeys.showReplyInChannel.rawValue] = showInChannel
+        return mockMessage(
+            mockedMessage,
+            messageId: messageId,
+            text: text,
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+    }
+    
     private func messageUpdate(request: HttpRequest) -> HttpResponse {
         if request.method == EndpointMethod.delete.rawValue {
             return messageDeletion(request: request)
         } else {
-            return messageCreation(request: request)
+            return messageCreation(request: request, eventType: .messageUpdated)
         }
     }
     
-    private func messageCreation(request: HttpRequest) -> HttpResponse {
-        let requestJson = TestData.toJson(request.body)
-        let requestMessage = requestJson[TopLevelKey.message] as! [String: Any]
-        let text = requestMessage[MessagePayloadsCodingKeys.text.rawValue] as! String
-        let messageId = requestMessage[MessagePayloadsCodingKeys.id.rawValue] as! String
+    private func messageCreation(
+        request: HttpRequest,
+        eventType: EventType = .messageNew
+    ) -> HttpResponse {
+        let json = TestData.toJson(request.body)
+        let message = json[TopLevelKey.message] as! [String: Any]
+        let parentId = message[MessagePayloadsCodingKeys.parentId.rawValue] as? String
+        let response = parentId == nil
+            ? messageCreationInChannel(message: message, eventType: eventType)
+            : messageCreationInThread(message: message)
+        return response
+    }
+    
+    private func messageCreationInChannel(
+        message: [String: Any],
+        eventType: EventType = .messageNew
+    ) -> HttpResponse {
+        let text = message[MessagePayloadsCodingKeys.text.rawValue] as! String
+        let messageId = message[MessagePayloadsCodingKeys.id.rawValue] as! String
         var responseJson = TestData.toJson(.httpMessage)
         let responseMessage = responseJson[TopLevelKey.message] as! [String: Any]
         let timestamp: String = TestData.currentDate
@@ -65,7 +103,7 @@ extension StreamMockServer {
             text,
             messageId: messageId,
             timestamp: timestamp,
-            eventType: .messageNew,
+            eventType: eventType,
             user: user
         )
         
@@ -80,6 +118,57 @@ extension StreamMockServer {
         responseJson[TopLevelKey.message] = mockedMessage
         return .ok(.json(responseJson))
     }
+    
+    private func messageCreationInThread(message: [String: Any]) -> HttpResponse {
+        let parentId = message[MessagePayloadsCodingKeys.parentId.rawValue] as! String
+        let showInChannel = message[MessagePayloadsCodingKeys.showReplyInChannel.rawValue] as! Bool
+        let text = message[MessagePayloadsCodingKeys.text.rawValue] as! String
+        let messageId = message[MessagePayloadsCodingKeys.id.rawValue] as! String
+        var responseJson = TestData.toJson(.httpMessage)
+        let responseMessage = responseJson[TopLevelKey.message] as! [String: Any]
+        let timestamp: String = TestData.currentDate
+        let user = setUpUser(
+            responseMessage[MessagePayloadsCodingKeys.user.rawValue] as! [String: Any],
+            userDetails: UserDetails.lukeSkywalker
+        )
+        let parrentMessage = findMessageById(parentId)
+        
+        // FIXME
+        websocketMessage(
+            parrentMessage[MessagePayloadsCodingKeys.text.rawValue] as! String,
+            messageId: parentId,
+            timestamp: parrentMessage[MessagePayloadsCodingKeys.createdAt.rawValue] as! String,
+            eventType: .messageUpdated,
+            user: user
+        ) { message in
+            message[MessagePayloadsCodingKeys.threadParticipants.rawValue] = [user]
+            return message
+        }
+        
+        websocketMessageInThread(
+            text,
+            parentId: parentId,
+            messageId: messageId,
+            timestamp: timestamp,
+            eventType: .messageNew,
+            user: user,
+            showInChannel: showInChannel
+        )
+        
+        var mockedMessage = mockMessageInThread(
+            responseMessage,
+            parentId: parentId,
+            messageId: messageId,
+            text: text,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+            showInChannel: showInChannel
+        )
+        mockedMessage[MessagePayloadsCodingKeys.user.rawValue] = user
+        responseJson[TopLevelKey.message] = mockedMessage
+        return .ok(.json(responseJson))
+    }
+    
     
     private func messageDeletion(request: HttpRequest) -> HttpResponse {
         let messageId = try! XCTUnwrap(request.params[":message_id"])
@@ -103,6 +192,14 @@ extension StreamMockServer {
             )
         }
         
+        return .ok(.json(json))
+    }
+    
+    private func mockMessageReplies(request: HttpRequest) -> HttpResponse {
+        let messageId = try! XCTUnwrap(request.params[":message_id"])
+        var json = TestData.toJson(.httpReplies)
+        let messages = findMessagesByParrentId(messageId)
+        json[TopLevelKey.messages] = messages
         return .ok(.json(json))
     }
 }

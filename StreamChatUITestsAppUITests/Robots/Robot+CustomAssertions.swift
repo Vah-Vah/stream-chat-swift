@@ -22,6 +22,17 @@ extension Robot {
     }
     
     @discardableResult
+    func assertThreadReply(
+        _ text: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) -> Self {
+        let isThreadPageOpen = ThreadPage.alsoSendInChannelCheckbox.exists
+        XCTAssertTrue(isThreadPageOpen, file: file, line: line)
+        return assertMessage(text, file: file, line: line)
+    }
+    
+    @discardableResult
     func assertDeletedMessage(
         file: StaticString = #filePath,
         line: UInt = #line

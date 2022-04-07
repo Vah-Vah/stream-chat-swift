@@ -52,14 +52,15 @@ extension StreamMockServer {
         messageId: String,
         timestamp: String = TestData.currentDate,
         eventType: EventType,
-        user: [String : Any]
+        user: [String : Any],
+        intercept: ((inout [String: Any]) -> [String: Any])? = nil
     ) -> Self {
         var json = TestData.getMockResponse(fromFile: .wsMessage).json
-        let message = json[TopLevelKey.message] as! [String: Any]
         var mockedMessage: [String: Any]
         
         switch eventType {
         case .messageNew:
+            let message = json[TopLevelKey.message] as! [String: Any]
             mockedMessage = mockMessage(
                 message,
                 messageId: messageId,
@@ -68,21 +69,24 @@ extension StreamMockServer {
                 updatedAt: timestamp
             )
             mockedMessage[MessagePayloadsCodingKeys.user.rawValue] = user
+            mockedMessage = intercept?(&mockedMessage) ?? mockedMessage
             saveMessage(mockedMessage)
         case .messageDeleted:
-            let messageDetails = findMessageById(messageId)
-            mockedMessage = mockDeletedMessage(messageDetails)
-            let id = messageDetails[MessagePayloadsCodingKeys.id.rawValue] as! String
+            let message = findMessageById(messageId)
+            mockedMessage = mockDeletedMessage(message)
+            let id = message[MessagePayloadsCodingKeys.id.rawValue] as! String
+            mockedMessage = intercept?(&mockedMessage) ?? mockedMessage
             removeMessage(id: id)
         case .messageUpdated:
-            let messageDetails = findMessageById(messageId)
+            let message = findMessageById(messageId)
             mockedMessage = mockMessage(
                 message,
-                messageId: messageDetails[MessagePayloadsCodingKeys.id.rawValue] as! String?,
+                messageId: message[MessagePayloadsCodingKeys.id.rawValue] as! String?,
                 text: text,
-                createdAt: messageDetails[MessagePayloadsCodingKeys.createdAt.rawValue] as! String?,
+                createdAt: message[MessagePayloadsCodingKeys.createdAt.rawValue] as! String?,
                 updatedAt: timestamp
             )
+            mockedMessage = intercept?(&mockedMessage) ?? mockedMessage
             saveMessage(mockedMessage)
         default:
             mockedMessage = [:]
@@ -94,6 +98,29 @@ extension StreamMockServer {
         json[MessagePayloadsCodingKeys.type.rawValue] = eventType.rawValue
         writeText(json.jsonToString())
         return self
+    }
+
+    @discardableResult
+    func websocketMessageInThread(
+        _ text: String = "",
+        parentId: String,
+        messageId: String,
+        timestamp: String = TestData.currentDate,
+        eventType: EventType,
+        user: [String : Any],
+        showInChannel: Bool = false
+    ) -> Self {
+        websocketMessage(
+            text,
+            messageId: messageId,
+            timestamp: timestamp,
+            eventType: eventType,
+            user: user
+        ) { message in
+            message[MessagePayloadsCodingKeys.parentId.rawValue] = parentId
+            message[MessagePayloadsCodingKeys.showReplyInChannel.rawValue] = showInChannel
+            return message
+        }
     }
     
     @discardableResult

@@ -429,6 +429,8 @@
 		80C6027B25157E4D00A6B714 /* View+AlertTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80C6027A25157E4D00A6B714 /* View+AlertTextField.swift */; };
 		80D880432546553500908B7B /* ChatScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80D880422546553500908B7B /* ChatScrollView.swift */; };
 		8210AA2827FC916B005F0B32 /* ChannelList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8210AA2727FC916B005F0B32 /* ChannelList.swift */; };
+		8210AA2A27FF22E0005F0B32 /* Replies_Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8210AA2927FF22E0005F0B32 /* Replies_Tests.swift */; };
+		8210AA2C27FF2FA3005F0B32 /* http_replies.json in Resources */ = {isa = PBXBuildFile; fileRef = 8210AA2B27FF2FA3005F0B32 /* http_replies.json */; };
 		822F265227D8F74700E454FB /* StreamTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82AD02BC27D8E44B000611B7 /* StreamTestCase.swift */; };
 		822F265527D8F75600E454FB /* String.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82AD02A327D76A63000611B7 /* String.swift */; };
 		822F265727D8F75D00E454FB /* UserRobot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8298C8E827D22C3E004082D3 /* UserRobot.swift */; };
@@ -2636,6 +2638,8 @@
 		80C6027A25157E4D00A6B714 /* View+AlertTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+AlertTextField.swift"; sourceTree = "<group>"; };
 		80D880422546553500908B7B /* ChatScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatScrollView.swift; sourceTree = "<group>"; };
 		8210AA2727FC916B005F0B32 /* ChannelList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelList.swift; sourceTree = "<group>"; };
+		8210AA2927FF22E0005F0B32 /* Replies_Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Replies_Tests.swift; sourceTree = "<group>"; };
+		8210AA2B27FF2FA3005F0B32 /* http_replies.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = http_replies.json; sourceTree = "<group>"; };
 		822F267C27DA1E3900E454FB /* http_message.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = http_message.json; sourceTree = "<group>"; };
 		822F267F27DA3F7700E454FB /* http_events.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = http_events.json; sourceTree = "<group>"; };
 		822F268B27DA447F00E454FB /* ws_message.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ws_message.json; sourceTree = "<group>"; };
@@ -4873,6 +4877,7 @@
 				82CED1CD27DF60AC006E967A /* http_reaction.json */,
 				82E4CBD527F22EC50013B02D /* http_channels.json */,
 				82E4CBD727F230700013B02D /* http_channel_query.json */,
+				8210AA2B27FF2FA3005F0B32 /* http_replies.json */,
 				825A32C727DBA243000402A9 /* ws_events.json */,
 				822F268B27DA447F00E454FB /* ws_message.json */,
 				82CED1D327DF612A006E967A /* ws_reaction.json */,
@@ -4944,6 +4949,7 @@
 				82BA52EE27E1EF7B00951B87 /* Messaging_Tests.swift */,
 				82A6F5BF27E2031000F4A2F6 /* Reactions_Tests.swift */,
 				82AD02BC27D8E44B000611B7 /* StreamTestCase.swift */,
+				8210AA2927FF22E0005F0B32 /* Replies_Tests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -8203,6 +8209,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8210AA2C27FF2FA3005F0B32 /* http_replies.json in Resources */,
 				82E4CBD627F22EC50013B02D /* http_channels.json in Resources */,
 				82CED1CE27DF60AC006E967A /* http_reaction.json in Resources */,
 				82E4CBDA27F232EA0013B02D /* ws_health_check.json in Resources */,
@@ -9460,6 +9467,7 @@
 				822F266127D9FDE800E454FB /* (null) in Sources */,
 				82B350FD27EA2A3900FEB6A0 /* MessageResponses.swift in Sources */,
 				822F266027D9FDB500E454FB /* URLProtocol_Mock.swift in Sources */,
+				8210AA2A27FF22E0005F0B32 /* Replies_Tests.swift in Sources */,
 				82BA52EF27E1EF7B00951B87 /* Messaging_Tests.swift in Sources */,
 				A39B040B27F196F200D6B18A /* StreamChatUITests.swift in Sources */,
 				82E4CBDE27F30E7D0013B02D /* MessageList.swift in Sources */,
