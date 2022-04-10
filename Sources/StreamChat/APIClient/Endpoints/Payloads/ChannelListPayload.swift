@@ -298,7 +298,7 @@ public class ChannelConfig: Codable {
         updatedAt = try container.decode(Date.self, forKey: .updatedAt)
     }
     
-    internal required init(
+    public required init(
         reactionsEnabled: Bool = false,
         typingEventsEnabled: Bool = false,
         readEventsEnabled: Bool = false,
